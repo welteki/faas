@@ -73,28 +73,37 @@ Official templates exist for many popular languages and are easily extensible wi
     ```
     *handler.py*
 
-* Golang example (`golang-http`)
+* Golang example (`golang-middleware`)
 
     ```golang
     package function
 
     import (
-        "log"
-
-        "github.com/openfaas-incubator/go-function-sdk"
+        "fmt"
+        "io"
+        "net/http"
     )
 
-    func Handle(req handler.Request) (handler.Response, error) {
-        var err error
+    func Handle(w http.ResponseWriter, r *http.Request) {
+        var input []byte
 
-        return handler.Response{
-            Body: []byte("Try us out today!"),
-            Header: map[string][]string{
-                "X-Served-By": []string{"openfaas.com"},
-            },
-        }, err
+        if r.Body != nil {
+            defer r.Body.Close()
+
+            body, _ := io.ReadAll(r.Body)
+
+            input = body
+        }
+
+        // log to stdout
+        fmt.Printf("request body: %s", string(input))
+
+        w.Header().Set("X-Served-By", "openfaas.com")
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte("Try us out today"))
     }
-    ```
+    
+    *handler.go*
 
 ## Get started with OpenFaaS
 
